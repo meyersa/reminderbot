@@ -63,9 +63,22 @@ function calculateAnniversaryInfo(eventDate) {
   upcoming.push({ label: `${months + 1} Month${months > 0 ? "s" : ""}`, days: daysToNextMonth });
   upcoming.push({ label: `${weeks + 1} Week${weeks > 0 ? "s" : ""}`, days: daysToNextWeek });
 
-  // Sort and select the largest upcoming milestone (Year > Month > Week)
-  upcoming.sort((a, b) => a.days - b.days);
-  largestUpcoming = upcoming[upcoming.length - 1];
+  // Select the most meaningful upcoming milestone (Year > Month > Week), avoiding smaller increments
+  upcoming.sort((a, b) => a.days - b.days); // Sort milestones by closest days first
+
+  // Logic to prioritize increments based on the current elapsed time
+  if (days < 365) {
+    if (days < 30) {
+      // If less than a month has passed, prioritize weeks
+      largestUpcoming = upcoming.find(event => event.label.includes('Week') && event.days > 0) || upcoming[0];
+    } else {
+      // If less than a year has passed, prioritize months
+      largestUpcoming = upcoming.find(event => event.label.includes('Month') && event.days > 0) || upcoming[0];
+    }
+  } else {
+    // If a year or more has passed, prioritize years
+    largestUpcoming = upcoming.find(event => event.label.includes('Year') && event.days > 0) || upcoming[0];
+  }
 
   // Exact breakdown
   exact.push(`\`${years}\` Years, \`${remainingMonths}\` Months, \`${remainingDays}\` Days, \`${remainingHours}\` Hours, \`${remainingMinutes}\` Minutes, \`${remainingSeconds}\` Seconds`);
