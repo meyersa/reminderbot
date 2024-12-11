@@ -32,7 +32,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: frontendDockerfile
+          file: Dockerfile
           push: true
           tags: ghcr.io/meyersa/reminderbot:latest
           platforms: linux/amd64,linux/arm64/v8
