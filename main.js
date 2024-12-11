@@ -1,3 +1,4 @@
+require("dotenv").config();
 const fs = require("fs");
 const { Client, GatewayIntentBits } = require("discord.js");
 const { EmbedBuilder } = require("discord.js");
@@ -24,76 +25,147 @@ function isValidTitle(title) {
 }
 
 /*
- * Load in events from JSON and filter out invalid ones
+ * Calculate dynamic upcoming dates and elapsed time
+ */
+function calculateAnniversaryInfo(eventDate) {
+  const now = new Date();
+  const event = new Date(eventDate);
+  let stats = [];
+  let exact = [];
+  let upcoming = [];
+  let largestUpcoming = null;
+
+  // Calculate exact differences
+  const diffTime = now - event;
+
+  let seconds = Math.floor(diffTime / 1000);
+  let minutes = Math.floor(seconds / 60);
+  let hours = Math.floor(minutes / 60);
+  let days = Math.floor(hours / 24);
+  let weeks = Math.floor(days / 7);
+  let years = Math.floor(days / 365);
+  let months = Math.floor(days / 30.44); // Approximate months
+
+  // Remaining time calculations
+  const overflowDays = days % 365;
+  const remainingMonths = Math.floor(overflowDays / 30.44);
+  const remainingDays = Math.floor(overflowDays % 30.44);
+  const remainingHours = hours % 24;
+  const remainingMinutes = minutes % 60;
+  const remainingSeconds = seconds % 60;
+
+  // Upcoming milestones
+  const daysToNextYear = 365 - (days % 365);
+  const daysToNextMonth = 30 - (days % 30);
+  const daysToNextWeek = 7 - (days % 7);
+
+  upcoming.push({ label: `${years + 1} Year${years > 0 ? "s" : ""}`, days: daysToNextYear });
+  upcoming.push({ label: `${months + 1} Month${months > 0 ? "s" : ""}`, days: daysToNextMonth });
+  upcoming.push({ label: `${weeks + 1} Week${weeks > 0 ? "s" : ""}`, days: daysToNextWeek });
+
+  // Sort and select the largest upcoming milestone (Year > Month > Week)
+  upcoming.sort((a, b) => a.days - b.days);
+  largestUpcoming = upcoming[upcoming.length - 1];
+
+  // Exact breakdown
+  exact.push(`\`${years}\` Years, \`${remainingMonths}\` Months, \`${remainingDays}\` Days, \`${remainingHours}\` Hours, \`${remainingMinutes}\` Minutes, \`${remainingSeconds}\` Seconds`);
+
+  // Stats breakdown
+  stats.push(`\`${years}\` Years`);
+  stats.push(`\`${months}\` Months`);
+  stats.push(`\`${days}\` Days`);
+  stats.push(`\`${hours}\` Hours`);
+  stats.push(`\`${minutes}\` Minutes`);
+  stats.push(`\`${seconds}\` Seconds`);
+
+  return { upcoming, largestUpcoming, stats, exact };
+}
+
+/*
+ * Determine embed color based on soonest upcoming date
+ */
+function getEmbedColor(largestUpcoming) {
+  if (largestUpcoming.days < 5) return 0xff0000; // Red for <5 days
+  if (largestUpcoming.days <= 10) return 0xffff00; // Yellow for 5-10 days
+  return 0x00ff00; // Green for >10 days
+}
+
+/*
+ * Build the embed
+ */
+function buildEmbed(event, nextRefresh) {
+  const { upcoming, largestUpcoming, stats, exact } = calculateAnniversaryInfo(event.date);
+
+  const description = largestUpcoming.days <= 10 
+    ? `**${largestUpcoming.label}** is coming up in **${largestUpcoming.days} days**!`
+    : `${largestUpcoming.label} is not upcoming within 10 days.`;
+
+  return new EmbedBuilder()
+    .setTitle(`${event.title}, ${new Date(event.date).toLocaleDateString()}`)
+    .setDescription(description)
+    .addFields(
+      { name: "Upcoming", value: upcoming.map(u => `\`${u.label}\` (in ${u.days} days)`).join("\n"), inline: false },
+      { name: "Stats", value: stats.join("\n"), inline: false },
+      { name: "Exact", value: exact.join("\n"), inline: false }
+    )
+    .setColor(getEmbedColor(largestUpcoming))
+    .setFooter({ text: `Last refreshed: ${new Date().toLocaleTimeString()} | Next refresh: ${new Date(Date.now() + nextRefresh * 1000).toLocaleTimeString()}` });
+}
+
+/*
+ * Load events from JSON and validate
  */
 function getEvents() {
   console.log("Getting events");
-
   var dateEvents = JSON.parse(fs.readFileSync("events.json"));
-  dateEvents = dateEvents.filter((item) => isValidTitle(item.title) && isValidDate(item.date));
-
-  if (dateEvents.length === 0) {
-    throw "dateEvents cannot be empty";
-  }
-
-  console.log(`Returning ${dateEvents.length} events`);
-  return dateEvents;
+  return dateEvents.filter((item) => isValidTitle(item.title) && isValidDate(item.date));
 }
 
 /*
- * Function to build an embed
+ * Find an existing message or send a new one
  */
-function buildEmbed(event) {
-  return new EmbedBuilder()
-    .setColor(0x0099ff)
-    .setTitle(event.title)
-    .setDescription(`Event date: ${event.date}`)
-    .setTimestamp()
-    .setFooter({ text: "Event Information", iconURL: "https://i.imgur.com/AfFp7pu.png" });
-}
-
-/*
- * Function to find an existing bot message or send a new embed
- */
-async function getOrSend(client, channelId, embed) {
+async function getOrSend(client, channelId, embeds) {
   try {
     const channel = await client.channels.fetch(channelId);
-
     if (!channel || !channel.isTextBased()) {
       console.log("Channel is not a valid text channel.");
       return null;
     }
-
-    // Fetch the most recent 10 messages
     const messages = await channel.messages.fetch({ limit: 10 });
-
-    // Look for a message sent by the bot
     let botMessage = messages.find((msg) => msg.author.id === client.user.id);
 
-    // If no message is found, send a new embed
-    if (!botMessage) {
-      const sentMessage = await channel.send({ embeds: [embed] });
-      console.log(`Sent new message ID: ${sentMessage.id}`);
-      return sentMessage.id;
+    if (botMessage) {
+      await botMessage.edit({ embeds: embeds });
+      console.log(`Edited existing message ID: ${botMessage.id}`);
     } else {
-      console.log(`Existing message ID: ${botMessage.id}`);
-      return botMessage.id;
+      const sentMessage = await channel.send({ embeds: embeds });
+      console.log(`Sent new message ID: ${sentMessage.id}`);
     }
   } catch (error) {
-    console.error("Error fetching/sending messages:", error);
-    return null;
+    console.error("Error fetching/sending/editing messages:", error);
   }
 }
 
-// Load events
-const dateEvents = getEvents();
+/*
+ * Refresh embed at regular intervals
+ */
+async function refreshEmbeds(client, channelId, interval) {
+  const dateEvents = getEvents();
+  console.log("Sending initial embeds...");
+  const initialEmbeds = dateEvents.map((event) => buildEmbed(event, interval));
+  await getOrSend(client, channelId, initialEmbeds);
 
-require('dotenv').config();
+  setInterval(async () => {
+    console.log("Refreshing embeds...");
+    const embeds = dateEvents.map((event) => buildEmbed(event, interval));
+    await getOrSend(client, channelId, embeds);
+  }, interval * 1000);
+}
 
 // Discord client setup
 const token = process.env.CLIENT_TOKEN;
 const channelId = process.env.CHANNEL_ID;
-
+const interval = parseInt(process.env.INTERVAL) || 60; // Default to 60 seconds
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
@@ -101,15 +173,7 @@ const client = new Client({
 
 client.once("ready", async () => {
   console.log(`Logged in as ${client.user.tag}`);
-
-  // Use the first event from the events array as an example
-  const event = dateEvents[0];
-  const embed = buildEmbed(event);
-
-  // Call getOrSend function
-  const messageId = await getOrSend(client, channelId, embed);
-  console.log(`Final message ID: ${messageId}`);
+  refreshEmbeds(client, channelId, interval);
 });
 
-// Log in the bot
 client.login(token);
