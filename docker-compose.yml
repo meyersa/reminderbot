@@ -1,0 +1,10 @@
+services:
+  discord-bot:
+    image: ghcr.io/meyersa/reminderbot:latest
+    container_name: reminderbot
+    environment:
+      - CLIENT_TOKEN=
+      - CHANNEL_ID=
+    volumes:
+      - ./events.json:/app/events.json
+    restart: unless-stopped
