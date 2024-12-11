@@ -1,6 +1,6 @@
 require("dotenv").config();
 const fs = require("fs");
-const { Client, GatewayIntentBits } = require("discord.js");
+const { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
 const { EmbedBuilder } = require("discord.js");
 
 /*
@@ -122,6 +122,18 @@ function getEvents() {
 }
 
 /*
+ * Create refresh button
+ */
+function createRefreshButton() {
+  return new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId("refresh_embed")
+      .setLabel("Refresh")
+      .setStyle(ButtonStyle.Primary)
+  );
+}
+
+/*
  * Find an existing message or send a new one
  */
 async function getOrSend(client, channelId, embeds) {
@@ -133,12 +145,13 @@ async function getOrSend(client, channelId, embeds) {
     }
     const messages = await channel.messages.fetch({ limit: 10 });
     let botMessage = messages.find((msg) => msg.author.id === client.user.id);
+    const components = [createRefreshButton()];
 
     if (botMessage) {
-      await botMessage.edit({ embeds: embeds });
+      await botMessage.edit({ embeds: embeds, components });
       console.log(`Edited existing message ID: ${botMessage.id}`);
     } else {
-      const sentMessage = await channel.send({ embeds: embeds });
+      const sentMessage = await channel.send({ embeds: embeds, components });
       console.log(`Sent new message ID: ${sentMessage.id}`);
     }
   } catch (error) {
@@ -174,6 +187,18 @@ const client = new Client({
 client.once("ready", async () => {
   console.log(`Logged in as ${client.user.tag}`);
   refreshEmbeds(client, channelId, interval);
+});
+
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isButton()) return;
+
+  if (interaction.customId === "refresh_embed") {
+    await interaction.deferUpdate();
+    console.log("Manual refresh triggered.");
+    const dateEvents = getEvents();
+    const embeds = dateEvents.map((event) => buildEmbed(event, interval));
+    await interaction.editReply({ embeds: embeds, components: [createRefreshButton()] });
+  }
 });
 
 client.login(token);
