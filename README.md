@@ -24,6 +24,7 @@ There is an included docker-compose for reference. Below are the ENV format as w
 - `CLIENT_TOKEN`: Token of client to connect to
 - `CHANNEL_ID`: Channel to post in 
 - `INTERVAL`: Optional interval to refresh in seconds, default 60 
+- `TZ`: Optional to set Timezone, like "America/Detroit"
 
 ## Events format 
 Events should be stored in a events.json file in the root directory with the following structure 
