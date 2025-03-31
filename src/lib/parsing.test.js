@@ -11,7 +11,6 @@ describe("parseEvents", () => {
         expect(parsedEvent[0].description).toEqual("An important date")
         expect(parsedEvent[0].channelId).toEqual(1356274332346613901)
         expect(parsedEvent[0].peopleToNotify).toEqual([276478672217571328])
-        expect(parsedEvent[0].exact).toBe("True")
     })
 })
 
@@ -25,6 +24,5 @@ describe("toAnniversaries", () => {
         expect(parsedEvent[0].description).toEqual("An important date")
         expect(parsedEvent[0].channelId).toEqual(1356274332346613901)
         expect(parsedEvent[0].peopleToNotify).toEqual([276478672217571328])
-        expect(parsedEvent[0].exact).toBe(true)
     })
 })
