@@ -80,7 +80,7 @@ describe("largestUpcoming", () => {
     const now = new Date("2024-01-03T00:00:00Z");
 
     expect(getLargestUpcoming(date, now)).toEqual({
-      type: "weeks",
+      type: "Weeks",
       value: 1,
       in: 6,
     });
@@ -90,7 +90,7 @@ describe("largestUpcoming", () => {
     const now = new Date("2024-01-22T00:00:00Z");
 
     expect(getLargestUpcoming(date, now)).toEqual({
-      type: "months",
+      type: "Months",
       value: 1,
       in: 11,
     });
@@ -100,7 +100,7 @@ describe("largestUpcoming", () => {
     const now = new Date("2024-03-22T00:00:00Z");
 
     expect(getLargestUpcoming(date, now)).toEqual({
-      type: "years",
+      type: "Years",
       value: 1,
       in: 286,
     });

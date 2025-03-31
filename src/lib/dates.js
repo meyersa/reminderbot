@@ -126,19 +126,19 @@ export function getLargestUpcoming(date, now = new Date()) {
 
   if (upcomingIn.months.value > 1) {
     return {
-      type: "years",
+      type: "Years",
       value: upcomingIn.years.value,
       in: upcomingIn.years.in,
     };
   } else if (upcomingIn.weeks.value > 1) {
     return {
-      type: "months",
+      type: "Months",
       value: upcomingIn.months.value,
       in: upcomingIn.months.in,
     };
   } else {
     return {
-      type: "weeks",
+      type: "Weeks",
       value: upcomingIn.weeks.value,
       in: upcomingIn.weeks.in,
     };
