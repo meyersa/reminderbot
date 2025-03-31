@@ -9,7 +9,7 @@ describe('Event', () => {
         expect(event.date).toBe(date);
         expect(event.name).toBe('Wedding');
         expect(event.description).toBe('Our wedding day');
-        expect(event.exact).toBe(true);
+        expect(event.exact).toBe(false);
         expect(event.notification).toBe(true);
         expect(event.peopleToNotify).toEqual([1, 2]);
         expect(event.channelId).toBe(12345);
