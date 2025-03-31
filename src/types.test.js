@@ -1,19 +1,19 @@
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { Anniversary, Notification } from "./types";
+import { Event, Notification } from "./types";
 
-describe('Anniversary', () => {
-    test('should create an Anniversary with correct values', () => {
+describe('Event', () => {
+    test('should create an Event with correct values', () => {
         const date = new Date();
-        const anniversary = new Anniversary(date, 'Wedding', 'Our wedding day', 12345, [1, 2], [100, 101]);
+        const event = new Event(date, 'Wedding', 'Our wedding day', 12345, [1, 2], [100, 101]);
 
-        expect(anniversary.date).toBe(date);
-        expect(anniversary.name).toBe('Wedding');
-        expect(anniversary.description).toBe('Our wedding day');
-        expect(anniversary.exact).toBe(true);
-        expect(anniversary.notification).toBe(true);
-        expect(anniversary.peopleToNotify).toEqual([1, 2]);
-        expect(anniversary.channelId).toBe(12345);
-        expect(anniversary.notificationsOwned).toEqual([100, 101]);
+        expect(event.date).toBe(date);
+        expect(event.name).toBe('Wedding');
+        expect(event.description).toBe('Our wedding day');
+        expect(event.exact).toBe(true);
+        expect(event.notification).toBe(true);
+        expect(event.peopleToNotify).toEqual([1, 2]);
+        expect(event.channelId).toBe(12345);
+        expect(event.notificationsOwned).toEqual([100, 101]);
     });
 });
 

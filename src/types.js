@@ -1,4 +1,4 @@
-export class Anniversary {
+export class Event {
     /**
      * @param {Date} date
      * @param {string} name
