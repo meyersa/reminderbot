@@ -11,89 +11,9 @@ const { EmbedBuilder } = require("discord.js");
 
 import { isValidDate, isValidTitle } from "./lib/helpers";
 
-/*
- * Calculate dynamic upcoming dates and elapsed time
- */
-export function calculateAnniversaryInfo(eventDate) {
-  const now = new Date();
-  const event = new Date(eventDate);
-  let stats = [];
-  let exact = [];
-  let upcoming = [];
-  let largestUpcoming = null;
 
-  // Calculate exact differences
-  const diffTime = now - event;
 
-  let seconds = Math.floor(diffTime / 1000);
-  let minutes = Math.floor(seconds / 60);
-  let hours = Math.floor(minutes / 60);
-  let days = Math.floor(hours / 24);
-  let weeks = Math.floor(days / 7);
-  let years = Math.floor(days / 365);
-  let months = Math.floor(days / 30.44); // Approximate months
 
-  // Remaining time calculations
-  const overflowDays = days % 365;
-  const remainingMonths = Math.floor(overflowDays / 30.44);
-  const remainingDays = Math.floor(overflowDays % 30.44);
-  const remainingHours = hours % 24;
-  const remainingMinutes = minutes % 60;
-  const remainingSeconds = seconds % 60;
-
-  // Upcoming milestones
-  const daysToNextYear = 365 - (days % 365);
-  const daysToNextMonth = 30 - (days % 30);
-  const daysToNextWeek = 7 - (days % 7);
-
-  upcoming.push({ label: `${years + 1} Year${years > 0 ? "s" : ""}`, days: daysToNextYear });
-  upcoming.push({ label: `${months + 1} Month${months > 0 ? "s" : ""}`, days: daysToNextMonth });
-  upcoming.push({ label: `${weeks + 1} Week${weeks > 0 ? "s" : ""}`, days: daysToNextWeek });
-
-  // Select the most meaningful upcoming milestone (Year > Month > Week), avoiding smaller increments
-  upcoming.sort((a, b) => a.days - b.days); // Sort milestones by closest days first
-
-  // Logic to prioritize increments based on the current elapsed time
-  if (days < 365) {
-    if (days < 30) {
-      // If less than a month has passed, prioritize weeks
-      largestUpcoming =
-        upcoming.find((event) => event.label.includes("Week") && event.days > 0) || upcoming[0];
-    } else {
-      // If less than a year has passed, prioritize months
-      largestUpcoming =
-        upcoming.find((event) => event.label.includes("Month") && event.days > 0) || upcoming[0];
-    }
-  } else {
-    // If a year or more has passed, prioritize years
-    largestUpcoming =
-      upcoming.find((event) => event.label.includes("Year") && event.days > 0) || upcoming[0];
-  }
-
-  // Exact breakdown
-  exact.push(
-    `\`${years}\` Years, \`${remainingMonths}\` Months, \`${remainingDays}\` Days, \`${remainingHours}\` Hours, \`${remainingMinutes}\` Minutes, \`${remainingSeconds}\` Seconds`
-  );
-
-  // Stats breakdown
-  stats.push(`\`${years}\` Years`);
-  stats.push(`\`${months}\` Months`);
-  stats.push(`\`${days}\` Days`);
-  stats.push(`\`${hours}\` Hours`);
-  stats.push(`\`${minutes}\` Minutes`);
-  stats.push(`\`${seconds}\` Seconds`);
-
-  return { upcoming, largestUpcoming, stats, exact };
-}
-
-/*
- * Determine embed color based on soonest upcoming date
- */
-export function getEmbedColor(largestUpcoming) {
-  if (largestUpcoming.days < 5) return 0xff0000; // Red for <5 days
-  if (largestUpcoming.days <= 10) return 0xffff00; // Yellow for 5-10 days
-  return 0x00ff00; // Green for >10 days
-}
 
 /*
  * Build the embed
