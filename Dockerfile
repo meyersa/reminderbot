@@ -10,6 +10,6 @@ COPY package.json package-lock.json ./
 RUN npm install --omit=dev
 
 # Copy bot source code into the container
-COPY . ./
+COPY . /app
 
-CMD ["node", "main.js"]
+CMD ["node", "./src/main.js"]
