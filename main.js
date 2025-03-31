@@ -9,14 +9,18 @@ const {
 } = require("discord.js");
 const { EmbedBuilder } = require("discord.js");
 
-/*
- * Function to validate date
- * - Should be valid when parsed with Date
+/**
+ * Validate Date Entries
+ * 
+ * - Should be valid when parsed with Date()
  * - Should not equal nothing
+ * 
+ * @param {String} dateString to be parsed 
+ * @returns True if valid, false if not
  */
 export function isValidDate(dateString) {
   const date = new Date(dateString);
-  return !isNaN(date) && dateString.trim() !== "";
+  return !isNaN(date) && String(dateString).trim() !== "";
 }
 
 /*
