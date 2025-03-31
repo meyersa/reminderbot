@@ -9,10 +9,15 @@ const {
 } = require("discord.js");
 const { EmbedBuilder } = require("discord.js");
 
-import { isValidDate, isValidTitle } from "./lib/helpers";
+// Get events / update their times 
 
+// Form embeds from that
 
+// Send in discord or update
 
+// Check notifications 
+
+// Send notification 
 
 
 /*
@@ -46,14 +51,7 @@ export function buildEmbed(event, nextRefresh) {
     });
 }
 
-/*
- * Load events from JSON and validate
- */
-export function getEvents() {
-  console.log("Getting events");
-  var dateEvents = JSON.parse(fs.readFileSync("events.json"));
-  return dateEvents.filter((item) => isValidTitle(item.title) && isValidDate(item.date));
-}
+
 
 /*
  * Create refresh button
