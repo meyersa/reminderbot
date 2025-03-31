@@ -3,6 +3,9 @@ import { configDotenv } from "dotenv";
 import { Client, GatewayIntentBits } from "discord.js";
 import { send_embeds } from "./lib/embed.js";
 import { snooze_notification, dismiss_notification, check_notifications } from "./lib/notification.js";
+import pino from "pino";
+
+const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
 
 configDotenv();
 const token = process.env.CLIENT_TOKEN;
@@ -17,26 +20,32 @@ client.login(token);
 const rawEvents = parseEvents();
 const events = toEventType(rawEvents);
 
+/**
+ * Refreshes embeds and checks notifications
+ * @param {string | null} notificationId - Optional message id to refresh only a specific message
+ */
 async function refresh(notificationId = null) {
   await send_embeds(client, events, interval, notificationId);
   await check_notifications(client, events);
 }
 
+/**
+ * Main bot logic
+ */
 async function main() {
-  console.log(`Parsed ${events.length} events`);
-
-  console.log("Sending embeds");
+  logger.info(`Parsed ${events.length} events`);
+  logger.info("Sending initial embeds");
   await refresh();
 
   // Refresh on interval
   setInterval(async () => {
-    console.log("Refreshing embeds...");
+    logger.info("Interval refresh triggered");
     await refresh();
   }, interval * 1000);
 }
 
 client.once("ready", async () => {
-  console.log(`Logged in as ${client.user.tag}`);
+  logger.info(`Logged in as ${client.user.tag}`);
   await main();
 });
 
@@ -44,9 +53,10 @@ client.on("interactionCreate", async (interaction) => {
   if (!interaction.isButton()) return;
 
   const [action, notificationId] = interaction.customId.split("_");
+  logger.info(`Button clicked: ${action} (${notificationId})`);
 
   if (action === "refresh") {
-    console.log(`Manual refresh triggered for ${notificationId}`);
+    logger.info(`Manual refresh triggered for ${notificationId}`);
     await refresh(notificationId);
   } else if (action == "snooze") {
     if (snooze_notification(notificationId, events)) {

@@ -1,11 +1,15 @@
+import pino from "pino";
+const logger = pino();
+
 /**
  * Function to get the number of days until another
- *
- * @param {*} date to be comparing against
- * @param {*} now time to assume is now
- * @returns
+ * @param {Date|string|number} date - date to compare against
+ * @param {Date|string|number} now - current date
+ * @returns {number}
  */
 export function daysUntil(date, now) {
+  logger.debug('Calculating days until target date');
+
   const date1 = new Date(now);
   const date2 = new Date(date);
 
@@ -18,12 +22,13 @@ export function daysUntil(date, now) {
 
 /**
  * Get the time difference information for a date
- *
- * @param {*} date to be comparing against
- * @param {*} now time to assume is now
- * @returns
+ * @param {Date} date - date to compare against
+ * @param {Date} [now=new Date()] - current date
+ * @returns {Object}
  */
 function getTimeDiff(date, now = new Date()) {
+  logger.debug('Getting time difference');
+
   if (date > now) [date, now] = [now, date];
 
   // Total diff in seconds
@@ -83,12 +88,13 @@ function getTimeDiff(date, now = new Date()) {
 
 /**
  * Get upcoming milestones for a date
- *
- * @param {*} date to be comparing against
- * @param {*} now time to assume is now
- * @returns
+ * @param {Date|string|number} date - date to compare against
+ * @param {Date|string|number} [now=new Date()] - current date
+ * @returns {Object}
  */
 export function getUpcoming(date, now = new Date()) {
+  logger.debug('Getting upcoming milestones');
+
   const dateInput = new Date(date);
   const timeDiff = getTimeDiff(date, now);
 
@@ -115,13 +121,14 @@ export function getUpcoming(date, now = new Date()) {
 }
 
 /**
- * Get the largest upcoming milestone 
- * 
- * @param {*} date to be comparing against
- * @param {*} now time to assume is now
- * @returns 
+ * Get the largest upcoming milestone
+ * @param {Date|string|number} date - date to compare against
+ * @param {Date|string|number} [now=new Date()] - current date
+ * @returns {Object}
  */
 export function getLargestUpcoming(date, now = new Date()) {
+  logger.debug('Getting largest upcoming milestone');
+
   const upcomingIn = getUpcoming(date, now);
 
   if (upcomingIn.months.value > 1) {
@@ -147,24 +154,26 @@ export function getLargestUpcoming(date, now = new Date()) {
 
 /**
  * Get Exact States of a date
- *
- * @param {*} date to be comparing against
- * @param {*} now time to assume is now
- * @returns
+ * @param {Date|string|number} date - date to compare against
+ * @param {Date|string|number} [now=new Date()] - current date
+ * @returns {Object}
  */
 export function getExact(date, now = new Date()) {
+  logger.debug('Getting exact breakdown');
+
   const { years, months, days, hours, minutes, seconds } = getTimeDiff(date, now);
   return { years, months, days, hours, minutes, seconds };
 }
 
 /**
  * Get Stats of a Date
- *
- * @param {*} date to be comparing against
- * @param {*} now time to assume is now
- * @returns
+ * @param {Date|string|number} date - date to compare against
+ * @param {Date|string|number} [now=new Date()] - current date
+ * @returns {Object}
  */
 export function getStats(date, now = new Date()) {
+  logger.debug('Getting stats');
+
   const { years, monthsTotal, daysTotal, hoursTotal, minutesTotal, secondsTotal } = getTimeDiff(date, now);
   return {
     years,

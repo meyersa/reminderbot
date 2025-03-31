@@ -2,24 +2,23 @@ import { getExact, getLargestUpcoming, getStats, getUpcoming } from "./dates.js"
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 import { getEmbedColor } from "./helpers.js";
 import { cleanBotMessages } from "./cleanup.js";
+import pino from "pino";
+const logger = pino();
 
 /**
  * Send embeds to a channel
- *
- * @param {*} client discord.js client
- * @param {*} events events to be sent
- * @param {*} interval interval period
- * @param {*} target_message_id message_id to update only
+ * @param {*} client - discord.js client
+ * @param {*} events - events to be sent
+ * @param {*} interval - interval period
+ * @param {*} target_message_id - message_id to update only
  */
 export async function send_embeds(client, events, interval, target_message_id = null) {
-  // Group events by channelId
+  logger.info('Grouping events by channel');
   const groupedEvents = {};
   for (const event of events) {
-    // If target_message_id is set, skip unrelated events
-    if (target_message_id && event.message_id !== target_message_id) continue;
-
-    if (!groupedEvents[event.channelId]) groupedEvents[event.channelId] = [];
-    groupedEvents[event.channelId].push(event);
+      if (target_message_id && event.message_id !== target_message_id) continue;
+      if (!groupedEvents[event.channelId]) groupedEvents[event.channelId] = [];
+      groupedEvents[event.channelId].push(event);
   }
 
   // Process each channel
@@ -27,23 +26,24 @@ export async function send_embeds(client, events, interval, target_message_id = 
     const channel = await client.channels.fetch(channelId);
 
     if (!channel || !channel.isTextBased()) {
-      console.log(`Channel ${channelId} is not valid.`);
+      logger.warn(`Channel ${channelId} is not valid.`);
       continue;
     }
 
-    // Cleaning channel
+    logger.info(`Cleaning bot messages for channel ${channelId}`);
     cleanBotMessages(channel, channelEvents)
 
-    console.log("Building Embed");
+    logger.info('Building embeds');
     const embeds = channelEvents.map((event) => buildEmbed(event, interval));
 
-    console.log("Checking message ID");
+    logger.info("Checking message ID");
     if (!channelEvents[0].message_id) {
-      console.log(`No message ID for channel ${channelId}, sending new message.`);
+      logger.info(`No message ID for channel ${channelId}, sending new message.`);
       const sentMessage = await channel.send({ embeds });
       channelEvents.forEach((event) => (event.message_id = sentMessage.id));
     }
 
+    logger.info(`Editing message ${channelEvents[0].message_id}`);
     const message = await channel.messages.fetch(channelEvents[0].message_id);
     const message_button = buildRefreshButton(channelEvents[0].message_id);
     const components = [message_button];
@@ -54,21 +54,20 @@ export async function send_embeds(client, events, interval, target_message_id = 
 
 /**
  * Build an embed from an event
- *
- * @param {*} event
- * @param {*} nextRefresh
- * @returns
+ * @param {*} event 
+ * @param {*} nextRefresh 
+ * @returns {EmbedBuilder}
  */
 export function buildEmbed(event, nextRefresh) {
   const eventDate = event.date;
   const dateNow = new Date();
 
-  console.log(`Starting Date math for ${event.name} at ${dateNow}`);
+  logger.info(`Starting date calculations for ${event.name}`);
   const upcoming = getUpcoming(eventDate, dateNow);
   const largestUpcoming = getLargestUpcoming(eventDate, dateNow);
   const stats = getStats(eventDate, dateNow);
   const exact = getExact(eventDate, dateNow);
-  console.log(`Finished Date math for ${event.name} at ${new Date()}`);
+  logger.info(`Finished date calculations for ${event.name}`);
 
   const description =
     largestUpcoming.in <= 10
@@ -107,7 +106,8 @@ export function buildEmbed(event, nextRefresh) {
 
 /**
  * Create Refresh Buttons
- * @returns
+ * @param {*} message_id 
+ * @returns {ActionRowBuilder}
  */
 function buildRefreshButton(message_id) {
   return new ActionRowBuilder().addComponents(

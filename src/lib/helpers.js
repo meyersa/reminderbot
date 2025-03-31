@@ -1,13 +1,16 @@
+import pino from "pino";
+const logger = pino();
+
 /**
  * Validate Date Entries
- *
  * - Should be valid when parsed with Date()
  * - Should not equal nothing
  *
  * @param {String} dateString to be parsed
- * @returns True if valid, false if not
+ * @returns {boolean} True if valid, false if not
  */
 export function isValidDate(dateString) {
+  logger.debug("Validating date string");
   const date = new Date(dateString);
   return !isNaN(date) && String(dateString).trim() !== "";
 }
@@ -19,9 +22,10 @@ export function isValidDate(dateString) {
  * - Should not be "Example"
  *
  * @param {String} title to verify
- * @returns
+ * @returns {boolean}
  */
 export function isValidTitle(title) {
+  logger.debug("Validating title");
   const trimTitle = title.trim();
   return trimTitle.length > 1 && trimTitle.length < 50 && trimTitle !== "Example";
 }
@@ -30,9 +34,11 @@ export function isValidTitle(title) {
  * Function to get an embed color depending on date
  *
  * @param {Number} largestUpcoming date in days
- * @returns Embed color or NaN if invalid
+ * @returns {number} Embed color or NaN if invalid
  */
 export function getEmbedColor(largestUpcoming) {
+  logger.debug("Getting embed color based on upcoming days");
+
   if (typeof largestUpcoming != "number" || largestUpcoming < 0) {
     return NaN;
   }

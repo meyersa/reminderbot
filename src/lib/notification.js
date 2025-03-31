@@ -1,9 +1,16 @@
 import { getLargestUpcoming } from "./dates.js";
 import { Notification } from "../types.js";
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
+import pino from "pino";
+const logger = pino();
 
+/**
+ * Check and trigger notifications
+ * @param {*} client - discord.js client
+ * @param {*} events - list of events
+ */
 export async function check_notifications(client, events) {
-  console.log("Checking notifications")
+  logger.info("Checking notifications");
 
   for (const event of events) {
     const eventDate = event.date;
@@ -11,11 +18,11 @@ export async function check_notifications(client, events) {
     const largestUpcoming = getLargestUpcoming(eventDate, dateNow);
 
     if (largestUpcoming.in <= 5) {
-      console.log("Found upcoming events")
+      logger.info(`Found upcoming event: ${event.name}`);
 
       const hasActive = event.notificationsOwned.find((n) => !n.defer || (n.defer && n.nextNotifyTime <= Date.now()));
       if (!hasActive) {
-        console.log("Found active notification")
+        logger.info(`Creating active notification for ${event.name}`);
 
         const notification = new Notification(event.name, event.channelId, event.peopleToNotify);
         event.notificationsOwned.push(notification);
@@ -25,8 +32,14 @@ export async function check_notifications(client, events) {
   }
 }
 
+/**
+ * Send notification message to channel
+ * @param {*} client
+ * @param {*} event
+ * @param {*} notification
+ */
 async function sendNotificationMessage(client, event, notification) {
-  console.log("Sending notification message...")
+  logger.info(`Sending notification message for ${event.name}`);
 
   const channel = await client.channels.fetch(event.channelId);
   if (!channel || !channel.isTextBased()) return;
@@ -48,37 +61,48 @@ async function sendNotificationMessage(client, event, notification) {
 
 /**
  * Find notification and its parent event by ID
+ * @param {string} notificationId
+ * @param {Array} events
+ * @returns {{event: *, notification: *} | null}
  */
 export function findNotification(notificationId, events) {
-    for (const event of events) {
-        const notification = event.notificationsOwned.find(n => n.id === notificationId);
-        if (notification) return { event, notification };
-    }
-    return null;
+  logger.info(`Finding notification with ID ${notificationId}`);
+
+  for (const event of events) {
+    const notification = event.notificationsOwned.find((n) => n.id === notificationId);
+    if (notification) return { event, notification };
+  }
+  return null;
 }
 
 /**
  * Snooze notification
+ * @param {string} notificationId
+ * @param {Array} events
+ * @returns {boolean}
  */
 export function snooze_notification(notificationId, events) {
-  console.log("Snoozing message")
+  logger.info(`Snoozing notification ${notificationId}`);
 
-    const result = findNotification(notificationId, events);
-    if (!result) return false;
+  const result = findNotification(notificationId, events);
+  if (!result) return false;
 
-    result.notification.snooze();
-    return true;
+  result.notification.snooze();
+  return true;
 }
 
 /**
  * Dismiss notification
+ * @param {string} notificationId 
+ * @param {Array} events 
+ * @returns {boolean}
  */
 export function dismiss_notification(notificationId, events) {
-  console.log("Dismissing notification")
+  logger.info(`Dismissing notification ${notificationId}`);
 
-    const result = findNotification(notificationId, events);
-    if (!result) return false;
+  const result = findNotification(notificationId, events);
+  if (!result) return false;
 
-    result.notification.dismiss(result.event);
-    return true;
+  result.notification.dismiss(result.event);
+  return true;
 }
