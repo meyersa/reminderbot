@@ -23,11 +23,14 @@ export function isValidDate(dateString) {
   return !isNaN(date) && String(dateString).trim() !== "";
 }
 
-/*
- * Function to validate Title
+/**
+ * Function to Validate Title 
  * - Should be less than 50 char
- * - Should be greater than 1 char
+ * - Should be more than 1 char
  * - Should not be "Example"
+ * 
+ * @param {String} title to verify 
+ * @returns 
  */
 export function isValidTitle(title) {
   const trimTitle = title.trim();
