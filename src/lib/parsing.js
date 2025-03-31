@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { Event } from "../types";
-import { isValidDate, isValidTitle } from "./helpers";
+import { Event } from "../types.js";
+import { isValidDate, isValidTitle } from "./helpers.js";
 
 // Fallback
 const EVENTS_FILE = process.env.EVENTS_FILE || "events.json";
@@ -24,7 +24,7 @@ export function parseEvents(fileName) {
  * @param {Array} rawEvents
  * @returns {Event[]} Array of Event objects
  */
-export function toAnniversaries(rawEvents) {
+export function toEventType(rawEvents) {
   return rawEvents.map(
     (event) =>
       new Event(

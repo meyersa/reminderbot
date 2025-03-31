@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { parseEvents, toAnniversaries } from "./parsing";
+import { parseEvents, toEventType } from "./parsing";
 
 describe("parseEvents", () => {
     test("Test Parsing", () => {
@@ -14,9 +14,9 @@ describe("parseEvents", () => {
     })
 })
 
-describe("toAnniversaries", () => {
+describe("toEventType", () => {
     test("Test Conversion", () => {
-        const parsedEvent = toAnniversaries(parseEvents())
+        const parsedEvent = toEventType(parseEvents())
 
         expect(parsedEvent.length).toEqual(1)
         expect((new Date(parsedEvent[0].date)).getTime()).toEqual(946702800000)
