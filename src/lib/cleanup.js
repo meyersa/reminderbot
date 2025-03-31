@@ -5,7 +5,7 @@ export async function cleanBotMessages(channel, events) {
 
     // Get list of message IDs to keep
     const allowedIds = [
-        ...events.map(e => e.messageId),
+        ...events.map(e => e.message_id),
         // ...notifications.map(n => n.messageId)
     ];
 
