@@ -1,6 +1,12 @@
 require("dotenv").config();
 const fs = require("fs");
-const { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require("discord.js");
+const {
+  Client,
+  GatewayIntentBits,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+} = require("discord.js");
 const { EmbedBuilder } = require("discord.js");
 
 /*
@@ -8,7 +14,7 @@ const { EmbedBuilder } = require("discord.js");
  * - Should be valid when parsed with Date
  * - Should not equal nothing
  */
-function isValidDate(dateString) {
+export function isValidDate(dateString) {
   const date = new Date(dateString);
   return !isNaN(date) && dateString.trim() !== "";
 }
@@ -19,7 +25,7 @@ function isValidDate(dateString) {
  * - Should be greater than 1 char
  * - Should not be "Example"
  */
-function isValidTitle(title) {
+export function isValidTitle(title) {
   const trimTitle = title.trim();
   return trimTitle.length > 1 && trimTitle.length < 50 && trimTitle !== "Example";
 }
@@ -27,7 +33,7 @@ function isValidTitle(title) {
 /*
  * Calculate dynamic upcoming dates and elapsed time
  */
-function calculateAnniversaryInfo(eventDate) {
+export function calculateAnniversaryInfo(eventDate) {
   const now = new Date();
   const event = new Date(eventDate);
   let stats = [];
@@ -70,18 +76,23 @@ function calculateAnniversaryInfo(eventDate) {
   if (days < 365) {
     if (days < 30) {
       // If less than a month has passed, prioritize weeks
-      largestUpcoming = upcoming.find(event => event.label.includes('Week') && event.days > 0) || upcoming[0];
+      largestUpcoming =
+        upcoming.find((event) => event.label.includes("Week") && event.days > 0) || upcoming[0];
     } else {
       // If less than a year has passed, prioritize months
-      largestUpcoming = upcoming.find(event => event.label.includes('Month') && event.days > 0) || upcoming[0];
+      largestUpcoming =
+        upcoming.find((event) => event.label.includes("Month") && event.days > 0) || upcoming[0];
     }
   } else {
     // If a year or more has passed, prioritize years
-    largestUpcoming = upcoming.find(event => event.label.includes('Year') && event.days > 0) || upcoming[0];
+    largestUpcoming =
+      upcoming.find((event) => event.label.includes("Year") && event.days > 0) || upcoming[0];
   }
 
   // Exact breakdown
-  exact.push(`\`${years}\` Years, \`${remainingMonths}\` Months, \`${remainingDays}\` Days, \`${remainingHours}\` Hours, \`${remainingMinutes}\` Minutes, \`${remainingSeconds}\` Seconds`);
+  exact.push(
+    `\`${years}\` Years, \`${remainingMonths}\` Months, \`${remainingDays}\` Days, \`${remainingHours}\` Hours, \`${remainingMinutes}\` Minutes, \`${remainingSeconds}\` Seconds`
+  );
 
   // Stats breakdown
   stats.push(`\`${years}\` Years`);
@@ -97,7 +108,7 @@ function calculateAnniversaryInfo(eventDate) {
 /*
  * Determine embed color based on soonest upcoming date
  */
-function getEmbedColor(largestUpcoming) {
+export function getEmbedColor(largestUpcoming) {
   if (largestUpcoming.days < 5) return 0xff0000; // Red for <5 days
   if (largestUpcoming.days <= 10) return 0xffff00; // Yellow for 5-10 days
   return 0x00ff00; // Green for >10 days
@@ -106,29 +117,38 @@ function getEmbedColor(largestUpcoming) {
 /*
  * Build the embed
  */
-function buildEmbed(event, nextRefresh) {
+export function buildEmbed(event, nextRefresh) {
   const { upcoming, largestUpcoming, stats, exact } = calculateAnniversaryInfo(event.date);
 
-  const description = largestUpcoming.days <= 10 
-    ? `**${largestUpcoming.label}** is coming up in **${largestUpcoming.days} days**!`
-    : `${largestUpcoming.label} is not upcoming within 10 days.`;
+  const description =
+    largestUpcoming.days <= 10
+      ? `**${largestUpcoming.label}** is coming up in **${largestUpcoming.days} days**!`
+      : `${largestUpcoming.label} is not upcoming within 10 days.`;
 
   return new EmbedBuilder()
     .setTitle(`${event.title}, ${new Date(event.date).toLocaleDateString()}`)
     .setDescription(description)
     .addFields(
-      { name: "Upcoming", value: upcoming.map(u => `\`${u.label}\` (in ${u.days} days)`).join("\n"), inline: false },
+      {
+        name: "Upcoming",
+        value: upcoming.map((u) => `\`${u.label}\` (in ${u.days} days)`).join("\n"),
+        inline: false,
+      },
       { name: "Stats", value: stats.join("\n"), inline: false },
       { name: "Exact", value: exact.join("\n"), inline: false }
     )
     .setColor(getEmbedColor(largestUpcoming))
-    .setFooter({ text: `Last refreshed: ${new Date().toLocaleTimeString()} | Next refresh: ${new Date(Date.now() + nextRefresh * 1000).toLocaleTimeString()}` });
+    .setFooter({
+      text: `Last refreshed: ${new Date().toLocaleTimeString()} | Next refresh: ${new Date(
+        Date.now() + nextRefresh * 1000
+      ).toLocaleTimeString()}`,
+    });
 }
 
 /*
  * Load events from JSON and validate
  */
-function getEvents() {
+export function getEvents() {
   console.log("Getting events");
   var dateEvents = JSON.parse(fs.readFileSync("events.json"));
   return dateEvents.filter((item) => isValidTitle(item.title) && isValidDate(item.date));
@@ -137,7 +157,7 @@ function getEvents() {
 /*
  * Create refresh button
  */
-function createRefreshButton() {
+export function createRefreshButton() {
   return new ActionRowBuilder().addComponents(
     new ButtonBuilder()
       .setCustomId("refresh_embed")
@@ -149,7 +169,7 @@ function createRefreshButton() {
 /*
  * Find an existing message or send a new one
  */
-async function getOrSend(client, channelId, embeds) {
+export async function getOrSend(client, channelId, embeds) {
   try {
     const channel = await client.channels.fetch(channelId);
     if (!channel || !channel.isTextBased()) {
@@ -175,7 +195,7 @@ async function getOrSend(client, channelId, embeds) {
 /*
  * Refresh embed at regular intervals
  */
-async function refreshEmbeds(client, channelId, interval) {
+export async function refreshEmbeds(client, channelId, interval) {
   const dateEvents = getEvents();
   console.log("Sending initial embeds...");
   const initialEmbeds = dateEvents.map((event) => buildEmbed(event, interval));
@@ -189,29 +209,35 @@ async function refreshEmbeds(client, channelId, interval) {
 }
 
 // Discord client setup
-const token = process.env.CLIENT_TOKEN;
-const channelId = process.env.CHANNEL_ID;
-const interval = parseInt(process.env.INTERVAL) || 60; // Default to 60 seconds
+if (require.main == module) {
+  const token = process.env.CLIENT_TOKEN;
+  const channelId = process.env.CHANNEL_ID;
+  const interval = parseInt(process.env.INTERVAL) || 60; // Default to 60 seconds
 
-const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
-});
+  const client = new Client({
+    intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.MessageContent,
+    ],
+  });
 
-client.once("ready", async () => {
-  console.log(`Logged in as ${client.user.tag}`);
-  refreshEmbeds(client, channelId, interval);
-});
+  client.once("ready", async () => {
+    console.log(`Logged in as ${client.user.tag}`);
+    refreshEmbeds(client, channelId, interval);
+  });
 
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isButton()) return;
+  client.on("interactionCreate", async (interaction) => {
+    if (!interaction.isButton()) return;
 
-  if (interaction.customId === "refresh_embed") {
-    await interaction.deferUpdate();
-    console.log("Manual refresh triggered.");
-    const dateEvents = getEvents();
-    const embeds = dateEvents.map((event) => buildEmbed(event, interval));
-    await interaction.editReply({ embeds: embeds, components: [createRefreshButton()] });
-  }
-});
+    if (interaction.customId === "refresh_embed") {
+      await interaction.deferUpdate();
+      console.log("Manual refresh triggered.");
+      const dateEvents = getEvents();
+      const embeds = dateEvents.map((event) => buildEmbed(event, interval));
+      await interaction.editReply({ embeds: embeds, components: [createRefreshButton()] });
+    }
+  });
 
-client.login(token);
+  client.login(token);
+}
