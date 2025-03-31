@@ -5,11 +5,10 @@ export class Event {
      * @param {string} description
      * @param {number} channelId
      * @param {number[]} peopleToNotify
-     * @param {number[]} notificationsOwned
      * @param {boolean} [exact=true]
      * @param {boolean} [notification=true]
      */
-    constructor(date, name, description, channelId, peopleToNotify = [], notificationsOwned = [], exact = true, notification = true) {
+    constructor(date, name, description, channelId = process.env.CHANNEL_ID, peopleToNotify = [], exact = true, notification = true) {
         this.date = date;
         this.name = name;
         this.description = description;
@@ -17,7 +16,7 @@ export class Event {
         this.notification = notification;
         this.peopleToNotify = peopleToNotify;
         this.channelId = channelId;
-        this.notificationsOwned = notificationsOwned;
+        this.notificationsOwned = [];
     }
 }
 

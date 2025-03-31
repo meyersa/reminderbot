@@ -4,7 +4,7 @@ import { Event, Notification } from "./types";
 describe('Event', () => {
     test('should create an Event with correct values', () => {
         const date = new Date();
-        const event = new Event(date, 'Wedding', 'Our wedding day', 12345, [1, 2], [100, 101]);
+        const event = new Event(date, 'Wedding', 'Our wedding day', 12345, [1, 2]);
 
         expect(event.date).toBe(date);
         expect(event.name).toBe('Wedding');
@@ -13,7 +13,6 @@ describe('Event', () => {
         expect(event.notification).toBe(true);
         expect(event.peopleToNotify).toEqual([1, 2]);
         expect(event.channelId).toBe(12345);
-        expect(event.notificationsOwned).toEqual([100, 101]);
     });
 });
 

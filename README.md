@@ -21,6 +21,7 @@ Image is built and pushed to ghcr.io, it can be pulled as: `ghcr.io/meyersa/remi
 There is an included docker-compose for reference. Below are the ENV format as well as the events.
 
 ## ENV Format 
+- `EVENTS_FILE`: File to parse, default `events.json`
 - `CLIENT_TOKEN`: Token of client to connect to
 - `CHANNEL_ID`: Channel to post in 
 - `INTERVAL`: Optional interval to refresh in seconds, default 60 
