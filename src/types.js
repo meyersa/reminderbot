@@ -33,4 +33,9 @@ export class Notification {
         this.notificationChannelId = notificationChannelId;
         this.usersToNotify = usersToNotify;
     }
+
+    snooze() {
+        this.nextNotifyTime = Date.now() + 24 * 60 * 60 * 1000; // +1 day
+        this.defer = true;
+    }
 }
