@@ -13,49 +13,51 @@ const logger = pino();
  * @param {*} target_message_id - message_id to update only
  */
 export async function send_embeds(client, events, interval, target_message_id = null) {
-  logger.info('Grouping events by channel');
+  logger.info("Grouping events by channel");
+
   const groupedEvents = {};
   for (const event of events) {
-      if (target_message_id && event.message_id !== target_message_id) continue;
-      if (!groupedEvents[event.channelId]) groupedEvents[event.channelId] = [];
-      groupedEvents[event.channelId].push(event);
+    if (target_message_id && event.message_id !== target_message_id) continue;
+    if (!groupedEvents[event.channelId]) groupedEvents[event.channelId] = [];
+    groupedEvents[event.channelId].push(event);
   }
 
-  // Process each channel
   for (const [channelId, channelEvents] of Object.entries(groupedEvents)) {
-    const channel = await client.channels.fetch(channelId);
+    try {
+      const channel = await client.channels.fetch(channelId);
+      if (!channel || !channel.isTextBased()) {
+        logger.warn(`Channel ${channelId} is not valid.`);
+        continue;
+      }
 
-    if (!channel || !channel.isTextBased()) {
-      logger.warn(`Channel ${channelId} is not valid.`);
-      continue;
+      logger.info(`Cleaning bot messages for channel ${channelId}`);
+      await cleanBotMessages(channel, channelEvents);
+
+      logger.info("Building embeds");
+      const embeds = channelEvents.map((event) => buildEmbed(event, interval));
+
+      if (!channelEvents[0].message_id) {
+        logger.info(`No message ID for channel ${channelId}, sending new message.`);
+        const sentMessage = await channel.send({ embeds });
+        channelEvents.forEach((event) => (event.message_id = sentMessage.id));
+      }
+
+      logger.info(`Editing message ${channelEvents[0].message_id}`);
+      const message = await channel.messages.fetch(channelEvents[0].message_id);
+      const message_button = buildRefreshButton(channelEvents[0].message_id);
+      const components = [message_button];
+
+      await message.edit({ embeds, components });
+    } catch (err) {
+      logger.error(err, `Failed to process embeds for channel ${channelId}`);
     }
-
-    logger.info(`Cleaning bot messages for channel ${channelId}`);
-    cleanBotMessages(channel, channelEvents)
-
-    logger.info('Building embeds');
-    const embeds = channelEvents.map((event) => buildEmbed(event, interval));
-
-    logger.info("Checking message ID");
-    if (!channelEvents[0].message_id) {
-      logger.info(`No message ID for channel ${channelId}, sending new message.`);
-      const sentMessage = await channel.send({ embeds });
-      channelEvents.forEach((event) => (event.message_id = sentMessage.id));
-    }
-
-    logger.info(`Editing message ${channelEvents[0].message_id}`);
-    const message = await channel.messages.fetch(channelEvents[0].message_id);
-    const message_button = buildRefreshButton(channelEvents[0].message_id);
-    const components = [message_button];
-
-    await message.edit({ embeds, components });
   }
 }
 
 /**
  * Build an embed from an event
- * @param {*} event 
- * @param {*} nextRefresh 
+ * @param {*} event
+ * @param {*} nextRefresh
  * @returns {EmbedBuilder}
  */
 export function buildEmbed(event, nextRefresh) {
@@ -106,7 +108,7 @@ export function buildEmbed(event, nextRefresh) {
 
 /**
  * Create Refresh Buttons
- * @param {*} message_id 
+ * @param {*} message_id
  * @returns {ActionRowBuilder}
  */
 function buildRefreshButton(message_id) {

@@ -5,7 +5,7 @@ const logger = pino();
  * @param {import('discord.js').TextChannel} channel
  * @param {import('../types').Event[]} events
  */
-async function cleanBotMessages(channel, events) {
+export async function cleanBotMessages(channel, events) {
     logger.info("Cleaning bot messages...");
 
     const messages = await channel.messages.fetch({ limit: 100 });
@@ -21,5 +21,3 @@ async function cleanBotMessages(channel, events) {
         }
     });
 }
-
-module.exports = { cleanBotMessages };

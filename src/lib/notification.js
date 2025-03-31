@@ -39,24 +39,27 @@ export async function check_notifications(client, events) {
  * @param {*} notification
  */
 async function sendNotificationMessage(client, event, notification) {
-  logger.info(`Sending notification message for ${event.name}`);
+  try {
+    logger.info(`Sending notification message for ${event.name}`);
+    const channel = await client.channels.fetch(event.channelId);
+    if (!channel || !channel.isTextBased()) return;
 
-  const channel = await client.channels.fetch(event.channelId);
-  if (!channel || !channel.isTextBased()) return;
+    const mentionString = event.peopleToNotify.map((id) => `<@${id}>`).join(" ");
+    const buttons = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId(`snooze_${notification.id}`)
+        .setLabel("Snooze 1 Day")
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder().setCustomId(`dismiss_${notification.id}`).setLabel("Dismiss").setStyle(ButtonStyle.Danger)
+    );
 
-  const mentionString = event.peopleToNotify.map((id) => `<@${id}>`).join(" ");
-  const buttons = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId(`snooze_${notification.id}`)
-      .setLabel("Snooze 1 Day")
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder().setCustomId(`dismiss_${notification.id}`).setLabel("Dismiss").setStyle(ButtonStyle.Danger)
-  );
-
-  await channel.send({
-    content: `🔔 Reminder for **${event.name}**!\n${mentionString}`,
-    components: [buttons],
-  });
+    await channel.send({
+      content: `🔔 Reminder for **${event.name}**!\n${mentionString}`,
+      components: [buttons],
+    });
+  } catch (err) {
+    logger.error(err, `Failed to send notification for ${event.name}`);
+  }
 }
 
 /**
@@ -93,8 +96,8 @@ export function snooze_notification(notificationId, events) {
 
 /**
  * Dismiss notification
- * @param {string} notificationId 
- * @param {Array} events 
+ * @param {string} notificationId
+ * @param {Array} events
  * @returns {boolean}
  */
 export function dismiss_notification(notificationId, events) {

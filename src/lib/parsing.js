@@ -14,16 +14,22 @@ const EVENTS_FILE = process.env.EVENTS_FILE || "events.json";
  * @returns {Array} Raw parsed events array
  */
 export function parseEvents(fileName) {
-  const filePath = path.resolve(fileName || EVENTS_FILE);
-  logger.info(`Reading events from: ${filePath}`);
+  try {
+    const filePath = path.resolve(fileName || EVENTS_FILE);
+    logger.info(`Reading events from: ${filePath}`);
+    
+    const rawData = fs.readFileSync(filePath, "utf-8");
+    const json = JSON.parse(rawData);
+    const validEvents = json.filter((item) => isValidTitle(item.name) && isValidDate(item.date));
 
-  const rawData = fs.readFileSync(filePath, "utf-8");
-  const json = JSON.parse(rawData);
+    logger.info(`Loaded ${validEvents.length} valid events`);
+    return validEvents;
 
-  const validEvents = json.filter((item) => isValidTitle(item.name) && isValidDate(item.date));
-  logger.info(`Loaded ${validEvents.length} valid events`);
+  } catch (err) {
+    logger.error(err, "Failed to parse events file");
+    return [];
 
-  return validEvents;
+  }
 }
 
 /**
