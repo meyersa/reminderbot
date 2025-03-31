@@ -3,7 +3,7 @@
         "date": "1/1/2000",
         "name": "Start of the Decade",
         "description": "An important date",
-        "channelId": 1356274332346613901,
+        "channelId": "1356274332346613901",
         "peopleToNotify": [276478672217571328],
         "exact": "True"
     }

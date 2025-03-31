@@ -33,8 +33,16 @@ Events should be stored in a events.json file in the root directory with the fol
 ```JSON
 [
     {
-        "date": "mm/dd/yyyy",
-        "title": "Example"
-    },
+        "date": "1/1/2000",
+        "name": "Start of the Decade",
+        "description": "An important date",
+        "channelId": "1356274332346613901",
+        "peopleToNotify": ["276478672217571328"],
+        "exact": "True"
+    }
 ]
 ```
+
+## Testing
+
+After installing packages, simply run `npm run test` to validate the build
