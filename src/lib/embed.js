@@ -32,7 +32,7 @@ export async function send_embeds(client, events, interval, target_message_id = 
     }
 
     // Cleaning channel
-    cleanBotMessages(channel, events)
+    cleanBotMessages(channel, channelEvents)
 
     console.log("Building Embed");
     const embeds = channelEvents.map((event) => buildEmbed(event, interval));
@@ -71,7 +71,7 @@ export function buildEmbed(event, nextRefresh) {
   console.log(`Finished Date math for ${event.name} at ${new Date()}`);
 
   const description =
-    largestUpcoming.days <= 10
+    largestUpcoming.in <= 10
       ? `**${largestUpcoming.type}** is coming up in **${largestUpcoming.days} days**!`
       : `**${largestUpcoming.type}** is not upcoming within **10 days.**`;
 
